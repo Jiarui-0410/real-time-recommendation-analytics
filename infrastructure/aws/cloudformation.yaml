@@ -1,0 +1,104 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: EC2 and S3 infrastructure for the retail recommendation API demo
+
+Parameters:
+  ContainerImage:
+    Type: String
+    Description: Published API image, for example ghcr.io/owner/retail-api:sha
+  AllowedCidr:
+    Type: String
+    Default: 127.0.0.1/32
+    Description: CIDR allowed to reach TCP 8000; replace with your public IP/32
+  InstanceType:
+    Type: String
+    Default: t3.small
+  ModelPrefix:
+    Type: String
+    Default: models/current
+
+Resources:
+  ArtifactBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+
+  ApiSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Restricted access to recommendation API
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 8000
+          ToPort: 8000
+          CidrIp: !Ref AllowedCidr
+
+  ApiRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: ReadModelArtifacts
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: [s3:GetObject, s3:ListBucket]
+                Resource:
+                  - !GetAtt ArtifactBucket.Arn
+                  - !Sub "${ArtifactBucket.Arn}/*"
+
+  ApiInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles: [!Ref ApiRole]
+
+  ApiInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: "{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}"
+      InstanceType: !Ref InstanceType
+      IamInstanceProfile: !Ref ApiInstanceProfile
+      SecurityGroupIds: [!GetAtt ApiSecurityGroup.GroupId]
+      Tags:
+        - Key: Name
+          Value: retail-recommendation-api
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          set -euxo pipefail
+          dnf install -y docker
+          systemctl enable --now docker
+          mkdir -p /opt/retail/artifacts/model
+          aws s3 sync s3://${ArtifactBucket}/${ModelPrefix}/ /opt/retail/artifacts/model/
+          docker run -d --restart unless-stopped --name retail-api \
+            -p 8000:8000 \
+            -e MODEL_DIR=/app/artifacts/model \
+            -v /opt/retail/artifacts:/app/artifacts:ro \
+            ${ContainerImage}
+
+Outputs:
+  ArtifactBucketName:
+    Value: !Ref ArtifactBucket
+  ApiUrl:
+    Value: !Sub "http://${ApiInstance.PublicDnsName}:8000"
+  InstanceId:
+    Value: !Ref ApiInstance
+

@@ -1,0 +1,66 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "retail-stream"
+version = "0.1.0"
+description = "Streaming retail analytics and online recommendation serving"
+requires-python = ">=3.11"
+dependencies = [
+  "confluent-kafka>=2.6,<3",
+  "numpy>=2.0,<3",
+  "pandas>=2.2,<3",
+  "pyarrow>=18,<22",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3,<9",
+  "ruff>=0.9,<1",
+]
+stream = [
+  "pyspark>=4.1,<4.3",
+  "psycopg[binary]>=3.2,<4",
+]
+ml = [
+  "torch>=2.6,<3",
+]
+serve = [
+  "fastapi>=0.115,<1",
+  "uvicorn[standard]>=0.34,<1",
+  "qdrant-client>=1.13,<1.15",
+]
+aws = [
+  "boto3>=1.36,<2",
+]
+all = [
+  "pyspark>=4.1,<4.3",
+  "psycopg[binary]>=3.2,<4",
+  "torch>=2.6,<3",
+  "fastapi>=0.115,<1",
+  "uvicorn[standard]>=0.34,<1",
+  "qdrant-client>=1.13,<1.15",
+  "boto3>=1.36,<2",
+]
+
+[project.scripts]
+replay-events = "retail_stream.ingestion.replay:main"
+build-training-data = "retail_stream.recommendation.data:main"
+train-two-tower = "retail_stream.recommendation.train:main"
+index-items = "retail_stream.retrieval.qdrant_index:main"
+serve-recommendations = "retail_stream.api.main:run"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

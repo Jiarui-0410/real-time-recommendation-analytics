@@ -1,0 +1,41 @@
+table 'Funnel Stages'
+	lineageTag: 883403c4-a092-4824-a16d-f03e554239bb
+
+	measure 'Funnel Users' = SUM('Funnel Stages'[Users])
+		formatString: #,0
+		lineageTag: c45dffca-1d7b-4a74-b16b-37f82e6cd8c3
+
+	column 'Stage Order'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: a91f5461-a5f9-49f5-a69f-e07fb9affaa5
+		summarizeBy: none
+		sourceColumn: stage_order
+
+	column Stage
+		dataType: string
+		lineageTag: 79d5aacd-46b3-4912-983d-8c8ca6d2ed20
+		summarizeBy: none
+		sourceColumn: stage
+
+	column Users
+		dataType: int64
+		formatString: #,0
+		lineageTag: 463e725c-f091-493f-b738-ad08e65a2257
+		summarizeBy: none
+		sourceColumn: users
+
+	partition 'Funnel Stages' = m
+		mode: import
+		source =
+				let
+							Source = PostgreSQL.Database(
+								"localhost:5432",
+								"retail_analytics",
+								[CreateNavigationProperties=false]
+							),
+							Data = Source{[Schema="public", Item="dashboard_funnel_stages"]}[Data]
+						in
+							Data
+

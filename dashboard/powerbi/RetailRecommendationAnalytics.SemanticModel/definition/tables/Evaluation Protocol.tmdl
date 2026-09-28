@@ -1,0 +1,109 @@
+table 'Evaluation Protocol'
+	lineageTag: f905bcfb-2b29-4542-8bf7-6fc3995444d1
+
+	measure 'Evaluated User Count' = MAX('Evaluation Protocol'[Evaluated Users])
+		formatString: #,0
+		lineageTag: da0f9ed3-bbbf-4d0a-b167-fd2ebf610fe0
+
+	measure 'Warm User Count' = MAX('Evaluation Protocol'[Warm Users])
+		formatString: #,0
+		lineageTag: 0f0c7a33-2df9-4e99-95ae-83be5ae92e0d
+
+	measure 'Cold User Count' = MAX('Evaluation Protocol'[Cold Users])
+		formatString: #,0
+		lineageTag: 92a284d8-52a4-4d6d-865f-4d21aeb0d8c0
+
+	measure 'Cold Start Share' = DIVIDE(MAX('Evaluation Protocol'[Cold Users]), MAX('Evaluation Protocol'[Evaluated Users]))
+		formatString: 0.0%
+		lineageTag: 4035877b-7949-45e9-8309-6ff4b943cc9d
+
+	measure 'Coverage Lift' = VAR TT = CALCULATE(MAX('Recommendation Metrics'[Metric Value]), FILTER(ALL('Recommendation Metrics'), 'Recommendation Metrics'[Cohort] = "Overall" && 'Recommendation Metrics'[Model] = "Two-Tower + fallback" && 'Recommendation Metrics'[Metric] = "catalog_coverage@10")) VAR Pop = CALCULATE(MAX('Recommendation Metrics'[Metric Value]), FILTER(ALL('Recommendation Metrics'), 'Recommendation Metrics'[Cohort] = "Overall" && 'Recommendation Metrics'[Model] = "Popularity" && 'Recommendation Metrics'[Metric] = "catalog_coverage@10")) RETURN DIVIDE(TT, Pop)
+		formatString: 0.0x
+		lineageTag: 27c5b9d9-493b-4f71-83e2-cb74f57bc579
+
+	column ID
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 18f82750-52be-466c-910e-82edc3d7431e
+		summarizeBy: none
+		sourceColumn: id
+
+	column 'Sampled Users'
+		dataType: int64
+		formatString: #,0
+		lineageTag: da034e01-6778-4e38-bfe2-6d60bd568f7f
+		summarizeBy: none
+		sourceColumn: sampled_test_users
+
+	column 'Evaluated Users'
+		dataType: int64
+		formatString: #,0
+		lineageTag: 10e9a1f6-cef7-45d1-b61a-82f4306b5b2f
+		summarizeBy: none
+		sourceColumn: evaluated_users
+
+	column 'Warm Users'
+		dataType: int64
+		formatString: #,0
+		lineageTag: 189de24a-2822-4454-9dc0-89116dc63fb5
+		summarizeBy: none
+		sourceColumn: warm_evaluated_users
+
+	column 'Cold Users'
+		dataType: int64
+		formatString: #,0
+		lineageTag: 3412ffd9-e539-444d-a1e0-6d5ba0c82f69
+		summarizeBy: none
+		sourceColumn: cold_user_fallbacks
+
+	column 'Cold Item Interactions'
+		dataType: int64
+		formatString: #,0
+		lineageTag: e14a6445-045a-4908-9679-db4351d9b6c9
+		summarizeBy: none
+		sourceColumn: cold_start_item_interactions
+
+	column K
+		dataType: int64
+		formatString: 0
+		lineageTag: c64404c1-2cfe-4a49-85a6-72ea9beb0c52
+		summarizeBy: none
+		sourceColumn: recommendation_k
+
+	column Seed
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: e96f83e8-fd14-462f-94ec-78e292608c6a
+		summarizeBy: none
+		sourceColumn: evaluation_seed
+
+	column 'Source Artifact'
+		dataType: string
+		isHidden
+		lineageTag: 84adaba0-eeeb-44bf-95d5-abbe5ab6a45c
+		summarizeBy: none
+		sourceColumn: source_artifact
+
+	column 'Loaded At'
+		dataType: dateTime
+		isHidden
+		formatString: yyyy-MM-dd HH:mm
+		lineageTag: 713229d1-bb63-4e96-9adc-97bff797cde5
+		summarizeBy: none
+		sourceColumn: loaded_at
+
+	partition 'Evaluation Protocol' = m
+		mode: import
+		source =
+				let
+							Source = PostgreSQL.Database(
+								"localhost:5432",
+								"retail_analytics",
+								[CreateNavigationProperties=false]
+							),
+							Data = Source{[Schema="public", Item="recommendation_evaluation_protocol"]}[Data]
+						in
+							Data
+

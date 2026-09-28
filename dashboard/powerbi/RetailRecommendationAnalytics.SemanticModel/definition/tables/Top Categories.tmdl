@@ -1,0 +1,73 @@
+table 'Top Categories'
+	lineageTag: f4f6a422-efae-414c-87a0-c605b17bc5e7
+
+	measure 'Total Category Purchases' = SUM('Top Categories'[Purchases])
+		formatString: #,0
+		lineageTag: bea736ec-6cf6-445e-83d3-fd7176241bcf
+
+	measure 'Total Category Views' = SUM('Top Categories'[Views])
+		formatString: #,0
+		lineageTag: 76b8259a-859d-4ea2-8eb2-cb6be1814c46
+
+	column 'Purchase Rank'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: b09513e2-6891-48da-9368-8f618a69cc8a
+		summarizeBy: none
+		sourceColumn: purchase_rank
+
+	column 'Category ID'
+		dataType: string
+		lineageTag: d02f8652-f11e-47e0-ac1a-db24175c6dc7
+		summarizeBy: none
+		sourceColumn: category_id
+
+	column Views
+		dataType: int64
+		formatString: #,0
+		lineageTag: 8ba4b710-c620-4789-98b2-342cd66dd971
+		summarizeBy: none
+		sourceColumn: views
+
+	column 'Cart Adds'
+		dataType: int64
+		formatString: #,0
+		lineageTag: 7de5d76f-0b0d-49e2-96ad-58aed07433bf
+		summarizeBy: none
+		sourceColumn: cart_adds
+
+	column Purchases
+		dataType: int64
+		formatString: #,0
+		lineageTag: 67a3fb3b-049c-408c-bce9-d533a8ee406d
+		summarizeBy: none
+		sourceColumn: purchases
+
+	column 'Unique Users'
+		dataType: int64
+		formatString: #,0
+		lineageTag: 0afeaeb7-bc53-4f8f-a1ee-4499eb26bc74
+		summarizeBy: none
+		sourceColumn: unique_users
+
+	column 'Distinct Items'
+		dataType: int64
+		formatString: #,0
+		lineageTag: c18f65b2-0de6-4bff-bb4e-4a40612fd22c
+		summarizeBy: none
+		sourceColumn: distinct_items
+
+	partition 'Top Categories' = m
+		mode: import
+		source =
+				let
+							Source = PostgreSQL.Database(
+								"localhost:5432",
+								"retail_analytics",
+								[CreateNavigationProperties=false]
+							),
+							Data = Source{[Schema="public", Item="dashboard_top_categories"]}[Data]
+						in
+							Data
+

@@ -1,0 +1,21 @@
+#cloud-config
+package_update: true
+packages:
+  - ca-certificates
+  - curl
+  - docker.io
+  - docker-compose-v2
+  - unzip
+
+write_files:
+  - path: /opt/retail/compose.yaml
+    permissions: "0644"
+    encoding: b64
+    content: __COMPOSE_B64__
+  - path: /usr/local/bin/retail-bootstrap.sh
+    permissions: "0750"
+    encoding: b64
+    content: __BOOTSTRAP_B64__
+
+runcmd:
+  - [bash, /usr/local/bin/retail-bootstrap.sh]

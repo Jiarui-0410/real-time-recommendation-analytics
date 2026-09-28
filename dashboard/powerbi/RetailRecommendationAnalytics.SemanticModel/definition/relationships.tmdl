@@ -1,0 +1,4 @@
+relationship 4b889604-7be3-53f3-a788-5963e69bca88
+	fromColumn: 'Fact Events'.'Event Date'
+	toColumn: Calendar.Date
+

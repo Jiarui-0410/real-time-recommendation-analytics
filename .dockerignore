@@ -1,0 +1,16 @@
+.git
+.github
+.venv
+__pycache__
+*.py[cod]
+*.egg-info
+.pytest_cache
+.ruff_cache
+.env
+artifacts
+checkpoints
+data
+dashboard
+qdrant_storage
+infrastructure
+tests

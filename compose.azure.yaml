@@ -1,0 +1,55 @@
+name: retail-recommendation-azure
+
+services:
+  qdrant:
+    image: ${QDRANT_IMAGE:-qdrant/qdrant:v1.13.6}
+    restart: unless-stopped
+    volumes:
+      - ${QDRANT_DATA_DIR:-/opt/retail/qdrant}:/qdrant/storage
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "bash -c 'exec 3<>/dev/tcp/127.0.0.1/6333 && printf \"GET /healthz HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3 && grep -q \"200 OK\" <&3'",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  qdrant-indexer:
+    image: ${API_IMAGE:?Set API_IMAGE to the Azure Container Registry image}
+    pull_policy: never
+    command:
+      - python
+      - -m
+      - retail_stream.retrieval.qdrant_index
+      - --model-dir
+      - /app/artifacts/model_full_v1
+      - --url
+      - http://qdrant:6333
+      - --collection
+      - ${QDRANT_COLLECTION:-retail_items}
+      - --skip-if-ready
+    volumes:
+      - ${MODEL_ROOT:-/opt/retail/artifacts}:/app/artifacts:ro
+    depends_on:
+      qdrant:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    image: ${API_IMAGE:?Set API_IMAGE to the Azure Container Registry image}
+    pull_policy: never
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      MODEL_DIR: /app/artifacts/model_full_v1
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_COLLECTION: ${QDRANT_COLLECTION:-retail_items}
+      USE_QDRANT: "true"
+    volumes:
+      - ${MODEL_ROOT:-/opt/retail/artifacts}:/app/artifacts:ro
+    depends_on:
+      qdrant-indexer:
+        condition: service_completed_successfully

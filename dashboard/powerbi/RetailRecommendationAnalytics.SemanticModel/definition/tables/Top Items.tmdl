@@ -1,0 +1,83 @@
+table 'Top Items'
+	lineageTag: 8ec69a96-0301-4900-9056-ee97d4c9ef20
+
+	measure 'Total Item Views' = SUM('Top Items'[Views])
+		formatString: #,0
+		lineageTag: 5d61bc0c-8e87-41e3-a749-9c34a9681c12
+
+	measure 'Total Item Purchases' = SUM('Top Items'[Purchases])
+		formatString: #,0
+		lineageTag: 9780cf76-821f-4297-9829-6f20feca096a
+
+	measure 'Total Item Cart Adds' = SUM('Top Items'[Cart Adds])
+		formatString: #,0
+		lineageTag: ec5efcb4-14b2-4d0b-b38e-0e867cb4174f
+
+	column 'Purchase Rank'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 615a1c47-c92c-461d-88b1-16609311a262
+		summarizeBy: none
+		sourceColumn: purchase_rank
+
+	column 'Item ID'
+		dataType: string
+		lineageTag: fdfc3984-d9b8-4bb0-9f04-564b19332073
+		summarizeBy: none
+		sourceColumn: item_id
+
+	column 'Category ID'
+		dataType: string
+		lineageTag: 35cb4bef-80c6-478f-95df-ee074de03c53
+		summarizeBy: none
+		sourceColumn: category_id
+
+	column Views
+		dataType: int64
+		formatString: #,0
+		lineageTag: ccd0df6b-6079-44af-b8c3-7a22e7703193
+		summarizeBy: none
+		sourceColumn: views
+
+	column 'Cart Adds'
+		dataType: int64
+		formatString: #,0
+		lineageTag: 7cfbea52-f68e-4a4b-a222-2c461b88ff1f
+		summarizeBy: none
+		sourceColumn: cart_adds
+
+	column Purchases
+		dataType: int64
+		formatString: #,0
+		lineageTag: 7e70e8b8-d387-438f-9dcd-5eea76fdf462
+		summarizeBy: none
+		sourceColumn: purchases
+
+	column 'Unique Users'
+		dataType: int64
+		formatString: #,0
+		lineageTag: e749273d-5986-4dc8-ab0e-cf0583cd8295
+		summarizeBy: none
+		sourceColumn: unique_users
+
+	column 'View to Purchase Rate'
+		dataType: double
+		formatString: 0.00%
+		lineageTag: 6376b430-f2ff-4e87-a4bb-89a208960962
+		summarizeBy: none
+		sourceColumn: view_to_purchase_rate
+
+	partition 'Top Items' = m
+		mode: import
+		source =
+				let
+							Source = PostgreSQL.Database(
+								"localhost:5432",
+								"retail_analytics",
+								[CreateNavigationProperties=false]
+							),
+							Data = Source{[Schema="public", Item="dashboard_top_items"]}[Data]
+						in
+							Data
+

@@ -1,0 +1,97 @@
+table 'Fact Events'
+	lineageTag: e8c24f79-c04f-49d0-82e6-aedba09c8e09
+
+	measure 'Total Events' = COUNTROWS('Fact Events')
+		formatString: #,0
+		lineageTag: f164d6b6-e0d5-443e-a610-4fbe8b047d34
+
+	measure 'Total Users' = DISTINCTCOUNT('Fact Events'[Visitor ID])
+		formatString: #,0
+		lineageTag: cf3fcc39-0b0d-49af-9a73-37ce65af2ca3
+
+	measure 'Total Items' = DISTINCTCOUNT('Fact Events'[Item ID])
+		formatString: #,0
+		lineageTag: d70cfb0a-09e6-4c08-ba7d-487c228986f1
+
+	measure Views = CALCULATE([Total Events], 'Fact Events'[Event Type] = "view")
+		formatString: #,0
+		lineageTag: 48c17cf6-9cca-4026-9b2a-d29f400206e5
+
+	measure 'Cart Adds' = CALCULATE([Total Events], 'Fact Events'[Event Type] = "addtocart")
+		formatString: #,0
+		lineageTag: fba65e6e-1d35-408d-b65f-638f6551b8f5
+
+	measure Transactions = CALCULATE([Total Events], 'Fact Events'[Event Type] = "transaction")
+		formatString: #,0
+		lineageTag: 4a318009-4ca2-4f12-8eeb-fdb90e118d69
+
+	measure 'View to Cart Rate' = DIVIDE([Cart Adds], [Views])
+		formatString: 0.00%
+		lineageTag: dcec8020-3afe-4cc0-8004-35c624a8ae81
+
+	measure 'Cart to Purchase Rate' = DIVIDE([Transactions], [Cart Adds])
+		formatString: 0.00%
+		lineageTag: 345fed63-36d7-4cd9-a230-0ed5555e182d
+
+	measure 'View to Purchase Rate' = DIVIDE([Transactions], [Views])
+		formatString: 0.00%
+		lineageTag: 5e7eb6ae-1ae4-4c88-9079-2d5f0f685489
+
+	column 'Event Date'
+		dataType: dateTime
+		formatString: yyyy-MM-dd
+		lineageTag: 168cb91e-0212-4c14-80cf-aee7b89035d7
+		summarizeBy: none
+		sourceColumn: event_date
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Event Hour'
+		dataType: int64
+		lineageTag: 0d3f461c-ec3a-44c0-a00f-9f5e46c81642
+		summarizeBy: none
+		sourceColumn: event_hour
+
+	column 'Visitor ID'
+		dataType: int64
+		lineageTag: 322190a4-a3da-49bf-b183-6cb612212b2e
+		summarizeBy: none
+		sourceColumn: visitor_id
+
+	column 'Item ID'
+		dataType: int64
+		lineageTag: a6550db0-1769-42cd-af55-c43c379e6081
+		summarizeBy: none
+		sourceColumn: item_id
+
+	column 'Category ID'
+		dataType: int64
+		lineageTag: 68a5d602-2654-4d00-9e1a-25bacba0b6fc
+		summarizeBy: none
+		sourceColumn: category_id
+
+	column 'Event Type'
+		dataType: string
+		lineageTag: 4faf9be9-22ba-4afa-a61a-f5ff6d05a29d
+		summarizeBy: none
+		sourceColumn: event_type
+
+	column Source
+		dataType: string
+		lineageTag: 875d00f1-1815-46d4-a3b8-1d74d376825b
+		summarizeBy: none
+		sourceColumn: source
+
+	partition 'Fact Events' = m
+		mode: import
+		source =
+				let
+							Source = PostgreSQL.Database(
+								"localhost:5432",
+								"retail_analytics",
+								[CreateNavigationProperties=false]
+							),
+							Data = Source{[Schema="public", Item="dashboard_fact_events"]}[Data]
+						in
+							Data
+

@@ -1,0 +1,24 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	discourageImplicitMeasures
+	sourceQueryCulture: en-US
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_QueryOrder = ["Fact Events","Calendar","Top Items","Top Categories","User Activity","Funnel Stages","Recommendation Metrics","Evaluation Protocol"]
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table 'Fact Events'
+ref table Calendar
+ref table 'Top Items'
+ref table 'Top Categories'
+ref table 'User Activity'
+ref table 'Funnel Stages'
+ref table 'Recommendation Metrics'
+ref table 'Evaluation Protocol'
+

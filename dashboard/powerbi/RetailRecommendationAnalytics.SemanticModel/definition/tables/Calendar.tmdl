@@ -1,0 +1,60 @@
+table Calendar
+	lineageTag: 69833bf3-af61-4231-a764-f28756c31d45
+
+	column Date
+		dataType: dateTime
+		formatString: yyyy-MM-dd
+		lineageTag: e48aa4cb-b58c-4c42-a7e5-438a29c0e794
+		summarizeBy: none
+		sourceColumn: calendar_date
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Year
+		dataType: int64
+		formatString: 0
+		lineageTag: 0e2cb639-89f9-45a8-9fab-72bf05cc0b88
+		summarizeBy: none
+		sourceColumn: calendar_year
+
+	column 'Month Number'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: f8d7bfda-32ac-46a7-9010-d25f2d2d7d00
+		summarizeBy: none
+		sourceColumn: calendar_month_number
+
+	column Month
+		dataType: string
+		lineageTag: 85643db1-9c2f-4f2d-a309-ca90de525f59
+		summarizeBy: none
+		sourceColumn: calendar_month
+
+	column 'Day Number'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 2e7a01eb-2777-4cc8-b8a7-18232c7305bb
+		summarizeBy: none
+		sourceColumn: day_of_week_number
+
+	column 'Day of Week'
+		dataType: string
+		lineageTag: 1bac6e14-f3ce-4c0f-98c4-ffc24bd5eafd
+		summarizeBy: none
+		sourceColumn: day_of_week
+
+	partition Calendar = m
+		mode: import
+		source =
+				let
+							Source = PostgreSQL.Database(
+								"localhost:5432",
+								"retail_analytics",
+								[CreateNavigationProperties=false]
+							),
+							Data = Source{[Schema="public", Item="dashboard_calendar"]}[Data]
+						in
+							Data
+

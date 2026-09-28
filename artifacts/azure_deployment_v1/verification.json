@@ -1,0 +1,36 @@
+{
+  "verified_date": "2026-09-29",
+  "cloud": "Microsoft Azure",
+  "subscription_offer": "Azure for Students",
+  "region": "eastasia",
+  "vm_size": "Standard_B2ls_v2",
+  "api_image_tag": "v2",
+  "qdrant_client_version": "1.14.3",
+  "health": {
+    "status": "ok",
+    "model_loaded": true
+  },
+  "qdrant": {
+    "collection": "retail_items",
+    "points_count": 212915,
+    "status": "green"
+  },
+  "recommendation_paths": {
+    "known_user": "two_tower_retrieval",
+    "unknown_user": "popularity_cold_start",
+    "filter_seen": true,
+    "top_k": 10
+  },
+  "server_validation": {
+    "request_count": 22,
+    "error_count": 0,
+    "average_latency_ms": 13.111
+  },
+  "client_validation": {
+    "request_count": 20,
+    "average_latency_ms": 86.37,
+    "minimum_latency_ms": 77.89,
+    "maximum_latency_ms": 115.38,
+    "note": "Client-observed latency from the test location to the East Asia VM."
+  }
+}

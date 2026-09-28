@@ -1,0 +1,56 @@
+table 'Recommendation Metrics'
+	lineageTag: 191c444b-feb2-42da-89f7-e26a806ff70d
+
+	measure 'Selected Metric Value' = SUM('Recommendation Metrics'[Metric Value])
+		formatString: 0.000%
+		lineageTag: 86f01adc-1167-41b7-ad60-003e8c9c86f1
+
+	measure 'Metric Evaluated Users' = MAX('Recommendation Metrics'[Evaluated Users])
+		formatString: #,0
+		lineageTag: a922e721-b86d-43cd-9e90-890d4e1b34a9
+
+	column Cohort
+		dataType: string
+		lineageTag: 31370c56-b1e0-4fb0-aaaf-5ed2bca83881
+		summarizeBy: none
+		sourceColumn: cohort
+
+	column Model
+		dataType: string
+		lineageTag: c34e5a29-aac0-4317-9759-b4a3ea369a1a
+		summarizeBy: none
+		sourceColumn: model_name
+
+	column Metric
+		dataType: string
+		lineageTag: f8b6b736-707f-443a-9c72-a6795c9e4678
+		summarizeBy: none
+		sourceColumn: metric_name
+
+	column 'Metric Value'
+		dataType: double
+		formatString: 0.000%
+		lineageTag: e3a60f40-5ae0-41ea-9def-8932cd41ff2f
+		summarizeBy: none
+		sourceColumn: metric_value
+
+	column 'Evaluated Users'
+		dataType: int64
+		formatString: #,0
+		lineageTag: 5f8f69b9-a89e-42b4-8078-77613087ef36
+		summarizeBy: none
+		sourceColumn: evaluated_users
+
+	partition 'Recommendation Metrics' = m
+		mode: import
+		source =
+				let
+							Source = PostgreSQL.Database(
+								"localhost:5432",
+								"retail_analytics",
+								[CreateNavigationProperties=false]
+							),
+							Data = Source{[Schema="public", Item="recommendation_evaluation_metrics"]}[Data]
+						in
+							Data
+

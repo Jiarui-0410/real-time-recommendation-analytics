@@ -1,0 +1,41 @@
+table 'User Activity'
+	lineageTag: 6c96a937-8482-4ca4-a02e-1913baeff64b
+
+	measure 'Users in Bucket' = SUM('User Activity'[User Count])
+		formatString: #,0
+		lineageTag: 5d1cd1ab-7f0b-4c7e-b9c3-f224ae0c6135
+
+	column 'Activity Bucket'
+		dataType: string
+		lineageTag: 802df490-0f3f-4870-8032-9fc49e550cec
+		summarizeBy: none
+		sourceColumn: activity_bucket
+
+	column 'Bucket Order'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 7d609a45-447b-4558-a72b-cfb931deda02
+		summarizeBy: none
+		sourceColumn: bucket_order
+
+	column 'User Count'
+		dataType: int64
+		formatString: #,0
+		lineageTag: 0f6d00cb-80b6-4d5d-9fb5-fbb9beeb88c4
+		summarizeBy: none
+		sourceColumn: user_count
+
+	partition 'User Activity' = m
+		mode: import
+		source =
+				let
+							Source = PostgreSQL.Database(
+								"localhost:5432",
+								"retail_analytics",
+								[CreateNavigationProperties=false]
+							),
+							Data = Source{[Schema="public", Item="dashboard_user_activity_distribution"]}[Data]
+						in
+							Data
+
