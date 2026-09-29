@@ -23,5 +23,5 @@ created by batch ETL; the first streaming milestone leaves it null.
 ## Item property history
 
 Retailrocket properties are time-varying. Batch ETL converts category observations into
-validity intervals and joins the latest category known **at** the event timestamp.
+validity intervals and joins the latest category known **at** the event timestamp
 
